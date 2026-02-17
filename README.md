@@ -15,7 +15,7 @@ Web developers, designers, agencies avoiding ADA lawsuits (~$10k avg settlement)
 2. Open `index.html` in any browser
 3. Check contrasts
 
-Live demo: https://harryherzberg.github.io/contrastcheck (TBD)
+Live demo: https://harryherzberg.github.io/contrastcheck
 
 ## Pricing &amp; Pro Version
 **Free:** Single checks  
