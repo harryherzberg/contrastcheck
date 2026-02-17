@@ -1,0 +1,104 @@
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+  &lt;title&gt;ContrastCheck - WCAG Color Contrast Checker&lt;/title&gt;
+  &lt;style&gt;
+    body { font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+    input { margin: 5px; }
+    #result { margin-top: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+    .pass { color: green; font-weight: bold; }
+    .fail { color: red; font-weight: bold; }
+    #pro { margin-top: 30px; padding: 20px; background: #f0f8ff; border-radius: 10px; text-align: center; }
+    button { padding: 10px 20px; background: #007cba; color: white; border: none; border-radius: 5px; cursor: pointer; }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;🧰 ContrastCheck&lt;/h1&gt;
+  &lt;p&gt;Check WCAG AA/AAA color contrast ratios instantly. Offline, no data sent.&lt;/p&gt;
+  
+  &lt;label&gt;Foreground Color: &lt;input type=&quot;color&quot; id=&quot;fg&quot; value=&quot;#000000&quot;&gt;&lt;/label&gt;&lt;br&gt;
+  &lt;label&gt;Background Color: &lt;input type=&quot;color&quot; id=&quot;bg&quot; value=&quot;#ffffff&quot;&gt;&lt;/label&gt;&lt;br&gt;
+  &lt;label&gt;Font Size (px): &lt;input type=&quot;number&quot; id=&quot;size&quot; value=&quot;16&quot; min=&quot;9&quot; max=&quot;72&quot;&gt;&lt;/label&gt;&lt;br&gt;
+  &lt;label&gt;Font Weight: &lt;select id=&quot;weight&quot;&gt;
+    &lt;option value=&quot;400&quot;&gt;Normal (400)&lt;/option&gt;
+    &lt;option value=&quot;700&quot;&gt;Bold (700)&lt;/option&gt;
+  &lt;/select&gt;&lt;/label&gt;&lt;br&gt;
+  
+  &lt;button onclick=&quot;checkContrast()&quot;&gt;Check Contrast&lt;/button&gt;
+  
+  &lt;div id=&quot;result&quot;&gt;&lt;/div&gt;
+  
+  &lt;div id=&quot;pro&quot;&gt;
+    &lt;h2&gt;Need More?&lt;/h2&gt;
+    &lt;p&gt;Pro: Batch checks, PDF reports, CSS/HTML parser, API access.&lt;/p&gt;
+    &lt;a href=&quot;https://harryherzberg.gumroad.com/l/contrastcheck-pro&quot; style=&quot;display: inline-block; padding: 15px 30px; background: #28a745; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;&quot;&gt;Buy Pro - $19&lt;/a&gt;
+    &lt;p style=&quot;font-size: 0.9em; margin-top: 10px;&quot;&gt;Free version for single checks. No license check.&lt;/p&gt;
+  &lt;/div&gt;
+  
+  &lt;script&gt;
+    function hexToRgb(hex) {
+      hex = hex.replace('#', '');
+      return [
+        parseInt(hex.substring(0, 2), 16),
+        parseInt(hex.substring(2, 2 + 2), 16),
+        parseInt(hex.substring(4, 4 + 2), 16)
+      ];
+    }
+    
+    function rgbToLuminance(r, g, b) {
+      r /= 255;
+      if (r <= 0.03928) r = r / 12.92;
+      else r = Math.pow((r + 0.055) / 1.055, 2.4);
+      
+      g /= 255;
+      if (g <= 0.03928) g = g / 12.92;
+      else g = Math.pow((g + 0.055) / 1.055, 2.4);
+      
+      b /= 255;
+      if (b <= 0.03928) b = b / 12.92;
+      else b = Math.pow((b + 0.055) / 1.055, 2.4);
+      
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    }
+    
+    function getContrastRatio(fgHex, bgHex) {
+      const fgRgb = hexToRgb(fgHex);
+      const bgRgb = hexToRgb(bgHex);
+      
+      const lum1 = rgbToLuminance(...fgRgb);
+      const lum2 = rgbToLuminance(...bgRgb);
+      
+      const brightest = Math.max(lum1, lum2);
+      const darkest = Math.min(lum1, lum2);
+      
+      return (brightest + 0.05) / (darkest + 0.05);
+    }
+    
+    function checkContrast() {
+      const fg = document.getElementById('fg').value;
+      const bg = document.getElementById('bg').value;
+      const size = parseFloat(document.getElementById('size').value);
+      const weight = parseFloat(document.getElementById('weight').value);
+      
+      const ratio = getContrastRatio(fg, bg).toFixed(2);
+      
+      const isLargeText = size >= 18 || (size >= 14 &amp;&amp; weight >= 600);
+      
+      const aaNormal = ratio >= 4.5;
+      const aaLarge = ratio >= 3.0;
+      const aaaNormal = ratio >= 7.0;
+      const aaaLarge = ratio >= 4.5;
+      
+      let html = `&lt;p&gt;&lt;strong&gt;Contrast Ratio:&lt;/strong&gt; ${ratio}:1&lt;/p&gt;`;
+      html += `&lt;p&gt;&lt;strong&gt;AA Normal Text (4.5:1):&lt;/strong&gt; &lt;span class=&quot;${aaNormal ? 'pass' : 'fail'}&quot;&gt;${aaNormal ? 'PASS' : 'FAIL'}&lt;/span&gt;&lt;/p&gt;`;
+      html += `&lt;p&gt;&lt;strong&gt;AA Large Text (3:1):&lt;/strong&gt; &lt;span class=&quot;${aaLarge ? 'pass' : 'fail'}&quot;&gt;${aaLarge ? 'PASS' : 'FAIL'}&lt;/span&gt; ${isLargeText ? '(applies)' : '(not large text)'}&lt;/p&gt;`;
+      html += `&lt;p&gt;&lt;strong&gt;AAA Normal Text (7:1):&lt;/strong&gt; &lt;span class=&quot;${aaaNormal ? 'pass' : 'fail'}&quot;&gt;${aaaNormal ? 'PASS' : 'FAIL'}&lt;/span&gt;&lt;/p&gt;`;
+      html += `&lt;p&gt;&lt;strong&gt;AAA Large Text (4.5:1):&lt;/strong&gt; &lt;span class=&quot;${aaaLarge ? 'pass' : 'fail'}&quot;&gt;${aaaLarge ? 'PASS' : 'FAIL'}&lt;/span&gt; ${isLargeText ? '(applies)' : '(not large text)'}&lt;/p&gt;`;
+      
+      document.getElementById('result').innerHTML = html;
+    }
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
